@@ -10,7 +10,7 @@ export const getRandomWeightIndex = (weights: number[]) => {
     return weights[weights.length - 1];
 };
 
-export const weightedRandomtests = () => {
+export const weightedRandomTests = () => {
     const weights = [3, 6, 1];
     const results = [0, 0, 0];
     const runTimes = 1000 * 1000;

@@ -1,57 +1,62 @@
+import _ from "lodash";
+import memoizee from "memoizee";
 import { getRandomWeightIndex } from ".";
+import {
+    verySharpMoundFunction,
+    sharpMoundFunction,
+    softBowFunction,
+    softMoundFunction,
+    sinWave,
+} from "./functions";
 
-const invertedOpenCurve = (
-    x: number,
-    options: {
-        spread?: number;
-        yTranslation?: number;
-        xTranslation?: number;
-    }
-) => {
-    const { spread = 5, yTranslation = 1, xTranslation = 0 } = options;
-    return (x - xTranslation) ** 2 / spread + yTranslation;
-};
-
-const getValuesForFunction = (
+const getNValuesForFunction = (
     func: (x: number) => number,
-    min = -50,
-    max = 50
+    min = -500,
+    max = 500
 ) => {
     const values: number[] = [];
 
     // max inclusive
-    for (let i = min; i < max + 1; i++) {
+    for (let i = min * 10; i < max * 10 + 1; i += 10) {
         values.push(func(i));
     }
     return values;
 };
 
-export const getRandomValueFromFunction = (
+const memoized = memoizee(getNValuesForFunction);
+export const getRandomValueFromFunctionWeightDistribution = (
+    // function to be used to extract weights
     func: (x: number) => number,
+    // top number
     max: number,
+    // bottom number
     min = 0
 ) => {
     const span = max - min;
 
-    // TODO: memoize that
-    const weights = getValuesForFunction(func, -span / 2, span / 2);
-    return getRandomWeightIndex(weights) + min;
+    const weights = memoized(func, -span / 2, span / 2);
+    const lowest = weights.reduce((p, v) => (v < p ? v : p), weights[0]);
+    const paddedWeights =
+        lowest < 0 ? weights.map((v) => v + Math.abs(lowest)) : weights;
+    return getRandomWeightIndex(paddedWeights) + min;
 };
 
 export const randomValueFromFunctionTests = () => {
     const results: number[] = [];
-    const runTimes = 1000 * 1000;
+    const runTimes = 1000;
+    const max = 50;
     for (let i = 0; i < runTimes; i++) {
-        const number = getRandomValueFromFunction(
-            (x) => invertedOpenCurve(x, { spread: 5, yTranslation: 1 }),
-            10,
+        const number = getRandomValueFromFunctionWeightDistribution(
+            verySharpMoundFunction,
+            max,
             0
         );
         results[number] = results[number] ? results[number] + 1 : 1;
     }
+    console.log(`Total: ${results.length}`);
     results.map((v, i) =>
         console.log(
-            `[${10 / 2 - i}] => [${v}] ${Math.floor((v / runTimes) * 100)}%`
+            `[${max / 2 - i}] => [${v}] ${Math.floor((v / runTimes) * 100)}%`
         )
     );
 };

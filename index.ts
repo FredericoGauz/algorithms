@@ -1,4 +1,4 @@
-// import { weightedRandomtests } from "./weighted-random";
+// import { weightedRandomTests } from "./weighted-random";
 import { randomValueFromFunctionTests } from "./weighted-random/function-based";
 randomValueFromFunctionTests();
-// weightedRandomtests();
+// weightedRandomTests();
